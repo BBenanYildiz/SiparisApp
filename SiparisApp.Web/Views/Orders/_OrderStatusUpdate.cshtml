@@ -1,0 +1,35 @@
+﻿@using SiparisApp.Core.DTOs;
+@model OrderStatusUpdateDTOs
+
+@{
+    var selectList = ViewBag.orderStatusList as SelectList;
+}
+<table cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td>
+            <form asp-action="OrderStatusUpdate" asp-controller="Orders" method="post" enctype="multipart/form-data">
+
+                <div class="modal-body form-horizontal">
+                    <div class="form-group">
+                        @Html.HiddenFor(model => model.Id)
+                        @Html.HiddenFor(model=>model.ord_musteri_no)
+                        <span><h6>Müşteri Sipariş No:  &nbsp &nbsp @Html.DisplayFor(model => model.ord_musteri_no)</h6></span>
+                    </div>
+                    <div class="form-group">
+                        <span><h6>Statü:   &nbsp &nbsp @Html.DropDownList("ord_durum", selectList)</h6> </span>
+                    </div>
+                    <br />
+                    <br />
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+            <br />
+        </td>
+    </tr>
+</table>

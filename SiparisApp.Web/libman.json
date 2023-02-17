@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "javascript.util@0.12.12",
+      "destination": "wwwroot/javascript.util/"
+    },
+    {
+      "library": "bootstrap-modal@2.2.6",
+      "destination": "wwwroot/bootstrap-modal/",
+      "files": [
+        "js/bootstrap-modalmanager.min.js"
+      ]
+    },
+    {
+      "library": "bootstrap@5.2.3",
+      "destination": "wwwroot/bootstrap/"
+    }
+  ]
+}
