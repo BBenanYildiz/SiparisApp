@@ -95,7 +95,6 @@ namespace SiparisApp.Service.Services
                     orderStatus.ord_sta_durum = "Sipariş Alındı";
                     orderStatus.ord_sta_musteri_no = resultInsert.ord_musteri_no;
                     orderStatus.ord_sta_degisim_tarihi = DateTime.Now;
-
                     await _orderStatusService.AddAsync(orderStatus);
                 }
 

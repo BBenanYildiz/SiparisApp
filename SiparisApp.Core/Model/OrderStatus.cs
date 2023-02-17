@@ -15,5 +15,6 @@ namespace SiparisApp.Core.Model
         /// </summary>
         public string ord_sta_durum { get; set; }
         public DateTime ord_sta_degisim_tarihi { get; set; }
+
     }
 }
