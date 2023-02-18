@@ -6,5 +6,6 @@ namespace SiparisApp.Core.Repositories
 {
     public interface IOrderRepository : IGenericRepository<Order>
     {
+        Task<List<OrderListDTOs>> GetOrderWitOrderStatus();
     }
 }

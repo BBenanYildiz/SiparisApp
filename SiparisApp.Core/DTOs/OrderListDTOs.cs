@@ -21,5 +21,6 @@ namespace SiparisApp.Core.DTOs
         public string ord_malzeme_adi { get; set; }
         public string ord_not { get; set; }
         public string ord_durum { get; set; }
+        public OrderStatus OrderStatuses { get; set; }
     }
 }

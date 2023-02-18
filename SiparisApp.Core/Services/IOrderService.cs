@@ -16,5 +16,7 @@ namespace SiparisApp.Core.Services
         Task<ApiResponse> OrderInsert(OrderInsertDTOs model);
 
         Task<ApiResponse> CustomerOrderNoValidation(string sip_musteri_no);
+
+        Task<List<OrderListDTOs>> GetOrderWitOrderStatus();
     }
 }

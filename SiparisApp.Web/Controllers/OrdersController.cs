@@ -23,17 +23,15 @@ namespace SiparisApp.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var result = await _orderService.GetAllAsync();
+            var result = await _orderService.GetOrderWitOrderStatus();
 
-            var list = _mapper.Map<List<OrderListDTOs>>(result);
-
-            return View(list);
+            return View(result);
         }
 
         [HttpGet]
         public async Task<IActionResult> OrderStatusUpdate(int id)
         {
-            var items = new List<SelectListItem>
+             var items = new List<SelectListItem>
               {
                  new SelectListItem { Value = "Sipariş Alındı", Text = "Sipariş Alındı" },
                  new SelectListItem { Value = "Yola Çıktı", Text = "Yola Çıktı" },

@@ -95,6 +95,7 @@ namespace SiparisApp.Service.Services
                     orderStatus.ord_sta_durum = "Sipariş Alındı";
                     orderStatus.ord_sta_musteri_no = resultInsert.ord_musteri_no;
                     orderStatus.ord_sta_degisim_tarihi = DateTime.Now;
+                    orderStatus.OrderId = resultInsert.Id;
                     await _orderStatusService.AddAsync(orderStatus);
                 }
 
@@ -147,6 +148,13 @@ namespace SiparisApp.Service.Services
                 }
             }
             return response;
+        }
+
+        public async Task<List<OrderListDTOs>> GetOrderWitOrderStatus()
+        {
+            var result = await _orderRepository.GetOrderWitOrderStatus();
+
+            return result;
         }
     }
 }
