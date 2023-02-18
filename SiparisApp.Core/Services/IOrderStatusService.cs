@@ -8,6 +8,6 @@ namespace SiparisApp.Core.Services
 {
     public interface IOrderStatusService : IGenericService<OrderStatus>
     {
-       
+        Task<ApiResponse> OrderSatatusUpdate(OrderStatusUpdateDTOs model);
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using SiparisApp.Core.DTOs;
 using SiparisApp.Core.Model;
 using SiparisApp.Core.Services;
@@ -23,15 +24,22 @@ namespace SiparisApp.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var result = await _orderService.GetOrderWitOrderStatus();
-
-            return View(result);
+            try
+            {
+                var result = await _orderService.GetOrderWitOrderStatus();
+                return View(result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Veriler çekilirken bir hata oluştu.");
+                throw;
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> OrderStatusUpdate(int id)
         {
-             var items = new List<SelectListItem>
+            var items = new List<SelectListItem>
               {
                  new SelectListItem { Value = "Sipariş Alındı", Text = "Sipariş Alındı" },
                  new SelectListItem { Value = "Yola Çıktı", Text = "Yola Çıktı" },
@@ -42,40 +50,31 @@ namespace SiparisApp.Web.Controllers
                 };
 
             var orderStatusList = new SelectList(items, "Value", "Text");
-
             ViewBag.orderStatusList = orderStatusList;
 
-            var entity = await _orderService.GetByIdAsync(id);
+            try
+            {
+                var entity = await _orderService.GetByIdAsync(id);
+                var result = _mapper.Map<OrderStatusUpdateDTOs>(entity);
 
-            var result = _mapper.Map<OrderStatusUpdateDTOs>(entity);
+                result.ord_musteri_no = entity.ord_musteri_no;
+                result.Id = entity.Id;
 
-            result.ord_musteri_no = entity.ord_musteri_no;
-            result.Id = entity.Id;
+                return PartialView("_OrderStatusUpdate", result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Sipariş durumu güncellemesi için sipariş detayında hata alındı", id);
+                return Content("");
 
-            return PartialView("_OrderStatusUpdate", result);
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> OrderStatusUpdate(OrderStatusUpdateDTOs model)
         {
-
-            var entity = _orderStatusService
-                .GetAllAsync()
-                .Result
-                .Where(x => x.ord_sta_musteri_no == model.ord_musteri_no)
-                .FirstOrDefault();
-
-            if (entity is not null)
-            {
-                entity.ord_sta_durum = model.ord_durum;
-                entity.UpdateDate = DateTime.Now;
-
-                await _orderStatusService.UpdateAsync(entity);
-
-            }
-
+            await _orderStatusService.OrderSatatusUpdate(model);
             return RedirectToAction("Index");
         }
-
     }
 }

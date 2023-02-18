@@ -26,6 +26,15 @@ builder.Services.AddDbContext<AppDbContext>(x =>
 
 });
 
+
+builder.Services.AddLogging(x =>
+{
+    x.ClearProviders();
+    x.SetMinimumLevel(LogLevel.Debug);
+    x.AddDebug(); //Output penceresinde gösterir.
+
+});
+
 builder.Host.UseServiceProviderFactory
     (new AutofacServiceProviderFactory());
 
@@ -35,6 +44,16 @@ builder.Host.ConfigureContainer<ContainerBuilder>
 
 
 var app = builder.Build();
+
+// LOGLAMA ÝÞLEMÝ BÝR KLASÖR OLUÞTURULUR. ONUN ÝÇÝNE KAYIT ATILIR....
+// SERÝLOG PAKETÝ ÝLE YAPILIR.
+using (var scope = app.Services.CreateScope())
+{
+    var loggerFactory = app.Services.GetService<ILoggerFactory>();
+    var path = Directory.GetCurrentDirectory(); //Aktif yol deðerini al
+    loggerFactory.AddFile($"{path}\\Logs\\Log.text");
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

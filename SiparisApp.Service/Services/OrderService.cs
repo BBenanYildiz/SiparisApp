@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Azure;
+using Microsoft.Extensions.Logging;
+using Serilog.Core;
 using SiparisApp.Core.DTOs;
 using SiparisApp.Core.Model;
 using SiparisApp.Core.Model.ResponseModel;
@@ -15,6 +18,7 @@ namespace SiparisApp.Service.Services
     public class OrderService : GenericService<Order>, IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly  ILogger<OrderService> _logger;
         private readonly IMapper _mapper;
         private readonly IMaterialService _materialService;
         private readonly IOrderStatusService _orderStatusService;
@@ -23,12 +27,14 @@ namespace SiparisApp.Service.Services
             IOrderRepository orderRepository,
             IMapper mapper,
             IMaterialService materialService,
-            IOrderStatusService orderStatusService) : base(repository, unitOfWork)
+            IOrderStatusService orderStatusService,
+           ILogger<OrderService> logger) : base(repository, unitOfWork)
         {
             _orderRepository = orderRepository;
             _mapper = mapper;
             _materialService = materialService;
             _orderStatusService = orderStatusService;
+            _logger = logger;
         }
 
 
@@ -44,13 +50,15 @@ namespace SiparisApp.Service.Services
                 OrderResponseDTOs orderResponse = new OrderResponseDTOs();
                 Order entity = new Order();
 
-
                 if (model.ord_musteri_no is not null)
                 {
                     var result = await CustomerOrderNoValidation(model.ord_musteri_no);
 
                     if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning($"Sipariş müşteri numarası doğrulama hatası: {model.ord_musteri_no}");
                         return result;
+                    }
                 }
 
                 entity.CreateDate = DateTime.Now;
@@ -69,6 +77,8 @@ namespace SiparisApp.Service.Services
 
                 var resultInsert = await this.AddAsync(entity);
 
+                _logger.LogInformation("Sipariş kaydı oluşturuldu. Müşteri Sipariş No: {MusteriSiparisNo}", resultInsert.ord_musteri_no);
+
                 orderResponse = _mapper.Map<OrderResponseDTOs>(resultInsert);
 
                 // Eğer malzeme kodu yoksa burada gelen malzeme koduna göre insert işlemi yapılır
@@ -84,6 +94,8 @@ namespace SiparisApp.Service.Services
                         material.mat_adi = model.ord_malzeme_adi;
 
                         await _materialService.InsertMaterial(material);
+
+                        _logger.LogInformation("Malzeme kaydı oluşturuldu. Malzeme Kodu: {MalzemeKodu}", material.mat_kodu);
                     }
                 }
 
@@ -97,6 +109,8 @@ namespace SiparisApp.Service.Services
                     orderStatus.ord_sta_degisim_tarihi = DateTime.Now;
                     orderStatus.OrderId = resultInsert.Id;
                     await _orderStatusService.AddAsync(orderStatus);
+
+                    _logger.LogInformation("Müşteri sipariş numarası için sipariş durumu eklendi {MusteriSiparisNo}", resultInsert.ord_musteri_no);
                 }
 
 
@@ -106,7 +120,10 @@ namespace SiparisApp.Service.Services
                 orderResponse.ord_statu = 0;
 
                 if (orderResponse is null)
+                {
+                    _logger.LogWarning("Sipariş yanıtı bulunamadı!");
                     return ApiResponse.CreateResponse(HttpStatusCode.NoContent, ApiResponse.ErrorMessage);
+                }
 
                 return ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, orderResponse);
 
@@ -125,36 +142,57 @@ namespace SiparisApp.Service.Services
         /// <returns></returns>
         public async Task<ApiResponse> CustomerOrderNoValidation(string ord_musteri_no)
         {
-            OrderResponseDTOs orderResponse = new OrderResponseDTOs();
 
-            ApiResponse response = new ApiResponse();
-
-            if (ord_musteri_no is not null)
+            try
             {
-                var result = await _orderRepository.AnyAsync(s => s.ord_musteri_no == ord_musteri_no);
+                OrderResponseDTOs orderResponse = new OrderResponseDTOs();
+                ApiResponse response = new ApiResponse();
 
-                if (result)
+                if (ord_musteri_no is not null)
                 {
-                    orderResponse.ord_hata_aciklama = "Aynı müşteri sipariş no girişi mevcuttur.Lütfen farklı bir sipariş giriniz!";
-                    orderResponse.ord_statu = 1;
-                    orderResponse.ord_sistem_no = 0;
-                    orderResponse.ord_musteri_no = ord_musteri_no;
+                    var result = await _orderRepository.AnyAsync(s => s.ord_musteri_no == ord_musteri_no);
 
-                    response = ApiResponse.CreateResponse(HttpStatusCode.NotFound, ApiResponse.ErrorMessage, orderResponse);
+                    if (result)
+                    {
+                        orderResponse.ord_hata_aciklama = "Aynı müşteri sipariş no girişi mevcuttur.Lütfen farklı bir sipariş giriniz!";
+                        orderResponse.ord_statu = 1;
+                        orderResponse.ord_sistem_no = 0;
+                        orderResponse.ord_musteri_no = ord_musteri_no;
+
+                        response = ApiResponse.CreateResponse(HttpStatusCode.NotFound, ApiResponse.ErrorMessage, orderResponse);
+
+                        _logger.LogWarning($"Sipariş müşteri numarası doğrulama hatası: {response.Message}");
+                    }
+                    else
+                    {
+                        response = ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, orderResponse);
+                    }
                 }
-                else
-                {
-                    response = ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, orderResponse);
-                }
+                return response;
             }
-            return response;
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Sipariş müşteri numarası doğrulama hatası: {ex.Message}");
+                return ApiResponse.CreateResponse(HttpStatusCode.InternalServerError, ApiResponse.ErrorMessage);
+            }
         }
 
         public async Task<List<OrderListDTOs>> GetOrderWitOrderStatus()
         {
-            var result = await _orderRepository.GetOrderWitOrderStatus();
+            try
+            {
+                var result = await _orderRepository.GetOrderWitOrderStatus();
 
-            return result;
+                _logger.LogInformation("Sipariş durumları başarılı şekilde çekildi.");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sipariş durumları çekilemedi.");
+                throw;
+            }
+           
         }
     }
 }

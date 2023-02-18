@@ -18,5 +18,6 @@ namespace SiparisApp.Core.Services
         Task<ApiResponse> CustomerOrderNoValidation(string sip_musteri_no);
 
         Task<List<OrderListDTOs>> GetOrderWitOrderStatus();
+
     }
 }
