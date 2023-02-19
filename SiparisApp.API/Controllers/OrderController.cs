@@ -43,13 +43,24 @@ namespace SiparisApp.API.Controllers
         [HttpPost]
         [ActionName("OrderInsert")]
         [Route("OrderInsert")]
-        public async Task<IActionResult> OrderInsert(OrderInsertDTOs model)
+        public async Task<IActionResult> OrderInsert(List<OrderInsertDTOs> orders)
         {
-            var result = await _orderService.OrderInsert(model);
-            return StatusCode((int)result.StatusCode, result);
+            ApiResponse result = new ApiResponse();
+            try
+            {
+                foreach (var order in orders)
+                {
+                    result = await _orderService.OrderInsert(order);
+                }
+
+                return StatusCode((int)result.StatusCode, result);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "İşlem başarısız.");
+            }
         }
-
-
 
 
         [HttpPost]
@@ -78,13 +89,13 @@ namespace SiparisApp.API.Controllers
                     //channel.BasicConsume(queue: RABBITMQ_QUEUE_NAME, autoAck: false, consumer: consumer);
 
                     var consumer = new EventingBasicConsumer(channel);
-                    consumer.Received += (model, ea) =>
+                    consumer.Received  += async(model, ea)  =>
                     {
                         var body = ea.Body.ToArray();
                         var message = Encoding.UTF8.GetString(body);
                         var order = JsonConvert.DeserializeObject<OrderInsertDTOs>(message);
 
-                        var result = _orderService.OrderInsert(order);
+                        var result = await _orderService.OrderInsert(order);
 
                         channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                     };
