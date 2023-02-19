@@ -150,9 +150,12 @@ namespace SiparisApp.Service.Services
 
                 if (ord_musteri_no is not null)
                 {
-                    var result = await _orderRepository.AnyAsync(s => s.ord_musteri_no == ord_musteri_no);
+                    var result =  _orderRepository
+                        .GetAll()
+                        .Where(s => s.ord_musteri_no == ord_musteri_no)
+                        .FirstOrDefault();
 
-                    if (result)
+                    if (result is not null)
                     {
                         orderResponse.ord_hata_aciklama = "Aynı müşteri sipariş no girişi mevcuttur.Lütfen farklı bir sipariş giriniz!";
                         orderResponse.ord_statu = 1;
@@ -167,6 +170,10 @@ namespace SiparisApp.Service.Services
                     {
                         response = ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, orderResponse);
                     }
+                }
+                else
+                {
+                    response = ApiResponse.CreateResponse(HttpStatusCode.BadRequest, ApiResponse.ErrorMessage, "Müşteri numarası boş olamaz.");
                 }
                 return response;
             }
