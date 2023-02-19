@@ -34,6 +34,12 @@ namespace SiparisApp.API.Controllers
         private const string RABBITMQ_PASSWORD = "guest";
         private const string RABBITMQ_QUEUE_NAME = "ordersQueue";
 
+
+        /// <summary>
+        /// Sipariş İnsert
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [ActionName("OrderInsert")]
         [Route("OrderInsert")]
@@ -42,6 +48,9 @@ namespace SiparisApp.API.Controllers
             var result = await _orderService.OrderInsert(model);
             return StatusCode((int)result.StatusCode, result);
         }
+
+
+
 
         [HttpPost]
         [ActionName("SendOrdersToQueue")]
@@ -64,9 +73,26 @@ namespace SiparisApp.API.Controllers
                         channel.BasicPublish(exchange: "", routingKey: RABBITMQ_QUEUE_NAME, basicProperties: null, body: body);
                     }
 
-                    // Siparişler kuyruğa eklendikten sonra consumer'ı oluşturarak siparişleri veritabanına kaydedebilirsiniz.
-                    var consumer = new OrderConsumer(channel, _orderService);
-                    channel.BasicConsume(queue: RABBITMQ_QUEUE_NAME, autoAck: false, consumer: consumer);
+                    //// Siparişler kuyruğa eklendikten sonra consumer'ı oluşturarak siparişleri veritabanına kaydedebilirsiniz.
+                    //var consumer = new OrderConsumer(channel, _orderService);
+                    //channel.BasicConsume(queue: RABBITMQ_QUEUE_NAME, autoAck: false, consumer: consumer);
+
+                    var consumer = new EventingBasicConsumer(channel);
+                    consumer.Received += (model, ea) =>
+                    {
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var order = JsonConvert.DeserializeObject<OrderInsertDTOs>(message);
+
+                        var result = _orderService.OrderInsert(order);
+
+                        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    };
+                    channel.BasicConsume(queue: "ordersQueue",
+                                         autoAck: false,
+                                         consumer: consumer);
+
+
                 }
 
                 return Ok();

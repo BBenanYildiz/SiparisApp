@@ -19,7 +19,6 @@ namespace SiparisApp.Core.Model
         public string ord_malzeme_adi { get; set; }
         public string ord_not { get; set; }
         public string ord_durum { get;set; }
-        public DateTime ord_degisim_tarihi { get; set; }
         public List<OrderStatus> OrderStatuses { get;set; }
     }
 }

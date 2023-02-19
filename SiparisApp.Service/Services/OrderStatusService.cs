@@ -33,6 +33,8 @@ namespace SiparisApp.Service.Services
         {
             try
             {
+                OrderStatusUpdateDTOs response = new OrderStatusUpdateDTOs();
+
                 var entity = this
                 .GetAllAsync()
                 .Result
@@ -45,10 +47,16 @@ namespace SiparisApp.Service.Services
                     entity.UpdateDate = DateTime.Now;
 
                     await this.UpdateAsync(entity);
+
+                    var updateEntity = await GetByIdAsync(entity.Id);
+                    response = _mapper.Map<OrderStatusUpdateDTOs>(updateEntity);
+                    response.ord_durum = updateEntity.ord_sta_durum;
+                    response.ord_musteri_no = updateEntity.ord_sta_musteri_no;
+                    response.ord_degisim_tarihi = updateEntity.ord_sta_degisim_tarihi;
                 }
 
                 _logger.LogInformation("Müşteri sipariş numarası için sipariş durumu güncellendi {SiparisDurumu}", entity.ord_sta_durum);
-                return ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, entity);
+                return ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, response);
 
             }
             catch (Exception ex)

@@ -15,17 +15,13 @@ public class OrderConsumer : DefaultBasicConsumer
         _orderService = orderService;
     }
 
-    public override async void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
-    {
-        var message = Encoding.UTF8.GetString(body.ToArray());
-        var order = JsonConvert.DeserializeObject<OrderInsertDTOs>(message);
+    //public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
+    //{
+    //    var message = Encoding.UTF8.GetString(body.ToArray());
+    //    var order = JsonConvert.DeserializeObject<OrderInsertDTOs>(message);
 
-        var result = await _orderService.OrderInsert(order);
+    //    var result = OrderInsert(order);
 
-        var responseJson = JsonConvert.SerializeObject(result);
-        var responseBytes = Encoding.UTF8.GetBytes(responseJson);
-        Model.BasicPublish("", properties.ReplyTo, null, responseBytes);
-
-        Model.BasicAck(deliveryTag, false);
-    }
+    //    Model.BasicAck(deliveryTag, false);
+    //}
 }

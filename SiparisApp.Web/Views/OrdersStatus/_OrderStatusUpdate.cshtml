@@ -7,11 +7,10 @@
 <table cellpadding="0" cellspacing="0" border="0">
     <tr>
         <td>
-            <form asp-action="OrderStatusUpdate" asp-controller="Orders" method="post" enctype="multipart/form-data">
+            <form asp-action="OrderStatusUpdate" asp-controller="OrdersStatus" method="post" enctype="multipart/form-data">
 
                 <div class="modal-body form-horizontal">
                     <div class="form-group">
-                        @Html.HiddenFor(model => model.Id)
                         @Html.HiddenFor(model=>model.ord_musteri_no)
                         <span><h6>Müşteri Sipariş No:  &nbsp &nbsp @Html.DisplayFor(model => model.ord_musteri_no)</h6></span>
                     </div>

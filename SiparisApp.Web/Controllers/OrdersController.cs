@@ -35,46 +35,5 @@ namespace SiparisApp.Web.Controllers
                 throw;
             }
         }
-
-        [HttpGet]
-        public async Task<IActionResult> OrderStatusUpdate(int id)
-        {
-            var items = new List<SelectListItem>
-              {
-                 new SelectListItem { Value = "Sipariş Alındı", Text = "Sipariş Alındı" },
-                 new SelectListItem { Value = "Yola Çıktı", Text = "Yola Çıktı" },
-                 new SelectListItem { Value = "Dağıtım Merkezinde", Text = "Dağıtım Merkezinde" },
-                 new SelectListItem { Value = "Dağıtıma Çıktı", Text = "Dağıtıma Çıktı" },
-                 new SelectListItem { Value = "Teslim Edildi", Text = "Teslim " },
-                 new SelectListItem { Value = "Teslim Edilemedi", Text = "Teslim Edilemedi" }
-                };
-
-            var orderStatusList = new SelectList(items, "Value", "Text");
-            ViewBag.orderStatusList = orderStatusList;
-
-            try
-            {
-                var entity = await _orderService.GetByIdAsync(id);
-                var result = _mapper.Map<OrderStatusUpdateDTOs>(entity);
-
-                result.ord_musteri_no = entity.ord_musteri_no;
-                result.Id = entity.Id;
-
-                return PartialView("_OrderStatusUpdate", result);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Sipariş durumu güncellemesi için sipariş detayında hata alındı", id);
-                return Content("");
-
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> OrderStatusUpdate(OrderStatusUpdateDTOs model)
-        {
-            await _orderStatusService.OrderSatatusUpdate(model);
-            return RedirectToAction("Index");
-        }
     }
 }

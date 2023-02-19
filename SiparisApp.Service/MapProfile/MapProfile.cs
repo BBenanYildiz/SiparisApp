@@ -17,6 +17,9 @@ namespace SiparisApp.Service.MapProfile
             CreateMap<OrderListDTOs, Order>().ReverseMap();
             CreateMap<Order, OrderListDTOs>().ReverseMap();
 
+            CreateMap<OrderStatusUpdateDTOs, OrderStatus>().ReverseMap();
+            CreateMap<OrderStatus, OrderStatusUpdateDTOs>().ReverseMap();
+
             CreateMap<OrderStatusUpdateDTOs, Order>().ReverseMap();
             CreateMap<Order, OrderStatusUpdateDTOs>().ReverseMap();
         }

@@ -63,6 +63,7 @@ namespace SiparisApp.Repository.Repositories
         {
             return _dbSet.Where(expression);
         }
+
     }
 }
 

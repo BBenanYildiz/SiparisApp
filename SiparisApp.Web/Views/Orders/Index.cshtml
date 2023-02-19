@@ -81,48 +81,53 @@
 @section Scripts
     {
     <script>
-        function UpdateModal() {
+        $(document).ready(function () {
+            $("#btn").click(function () {
+                orderstatuscontrol();
+            });
 
-            orderstatuscontrol();
-        }
+            function orderstatuscontrol() {
+                var radiolar = document.getElementsByName("order-status");
+                var gecerlimi = false;
+                var i = 0;
+                while (!gecerlimi && i < radiolar.length) {
+                    if (radiolar[i].checked) gecerlimi = true;
+                    i++;
+                }
+                if (!gecerlimi) {
+                    showAlertModal("Sipariş Seçimi yapılmadı.");
+                    $("#partialModal").modal('hide');
+                    return;
+                }
+                else {
+                    var seciliId = document.querySelector('input[name="order-status"]:checked').value;
 
-        function orderstatuscontrol() {
-            var radiolar = document.getElementsByName("order-status");
-            var gecerlimi = false;
-            var i = 0;
-            while (!gecerlimi && i < radiolar.length) {
-                if (radiolar[i].checked) gecerlimi = true;
-                i++;
-            }
-            if (!gecerlimi) {
-                showAlertModal("Sipariş Seçimi yapılmadı.");
-                $("#partialModal").modal('hide');
-                return; 
-            }
-            else {
-                var seciliId = document.querySelector('input[name="order-status"]:checked').value;
-                $.ajax({
-                    type: "GET",
-                    url: "/Orders/OrderStatusUpdate",
-                    data: { "id": seciliId },
-                    success: function (response) {
-                        $("#partialModal").find(".modal-body").html(response);
-                        $("#partialModal").modal('show');
-                        $('#alertModal').modal('hide');
-                    },
-                    failure: function (response) {
-                        alert(response.responseText);
-                    },
-                    error: function (response) {
-                        alert(response.responseText);
-                    }
-                });
-            }
-        }
+                    console.log("girdi", seciliId);
 
-        function showAlertModal(message) {
-            $('#alertMessage').text(message);
-            $('#alertModal').modal('show');
-        }
+                    $.ajax({
+                        type: "GET",
+                        url: "/OrdersStatus/OrderStatusUpdate",
+                        data: { "id": seciliId },
+                        success: function (response) {
+                            $("#partialModal").find(".modal-body").html(response);
+                            $("#partialModal").modal('show');
+                            $('#alertModal').modal('hide');
+                        },
+                        failure: function (response) {
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            alert(response.responseText);
+                        }
+                    });
+                }
+            }
+
+            function showAlertModal(message) {
+                $('#alertMessage').text(message);
+                $('#alertModal').modal('show');
+            }
+        });
     </script>
 }
+
