@@ -41,8 +41,11 @@ namespace SiparisApp.API.Controllers
         {
             var result = await _orderStatusService.OrderSatatusUpdate(model);
             return StatusCode((int)result.StatusCode, result);
+
         }
     }
+
+
 
 }
 

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Azure;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SiparisApp.Core.DTOs;
 using SiparisApp.Core.Model;
 using SiparisApp.Core.Model.ResponseModel;
@@ -9,6 +10,7 @@ using SiparisApp.Core.Services;
 using SiparisApp.Core.UnitOfWorks;
 using SiparisApp.Service.Services;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 
 namespace SiparisApp.Service.Services
@@ -18,15 +20,19 @@ namespace SiparisApp.Service.Services
         private readonly IOrderStatusRepository _orderStatusRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderStatusService> _logger;
+        private readonly HttpClient _httpClient;
+
         public OrderStatusService(IGenericRepository<OrderStatus> repository,
-            IUnitOfWork unitOfWork,
-            IOrderStatusRepository orderStatusRepository,
-            IMapper mapper,
-            ILogger<OrderStatusService> logger) : base(repository, unitOfWork)
+              IUnitOfWork unitOfWork,
+              IOrderStatusRepository orderStatusRepository,
+              IMapper mapper,
+              ILogger<OrderStatusService> logger,
+              IHttpClientFactory httpClientFactory) : base(repository, unitOfWork)
         {
             _orderStatusRepository = orderStatusRepository;
             _mapper = mapper;
             _logger = logger;
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         public async Task<ApiResponse> OrderSatatusUpdate(OrderStatusUpdateDTOs model)
@@ -56,14 +62,37 @@ namespace SiparisApp.Service.Services
                 }
 
                 _logger.LogInformation("Müşteri sipariş numarası için sipariş durumu güncellendi {SiparisDurumu}", entity.ord_sta_durum);
+                
+                OrderStatusUpdateAsync(response);
+
+
                 return ApiResponse.CreateResponse(HttpStatusCode.OK, ApiResponse.SuccessMessage, response);
 
+
+                
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Müşteri statü entegrasyon servisi çağrısı başarısız oldu: {ApiResponse.ErrorMessage}");
                 return ApiResponse.CreateResponse(HttpStatusCode.InternalServerError, ApiResponse.ErrorMessage);
             }
+        }
+
+        public async Task<OrderStatusUpdateDTOs> OrderStatusUpdateAsync(OrderStatusUpdateDTOs request)
+        {
+            var json = JsonConvert.SerializeObject(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("http://api.xx.com/status", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<OrderStatusUpdateDTOs>(responseContent);
+                return result;
+            }
+
+            throw new Exception($"İşlem başarısız {response.StatusCode}");
         }
 
     }

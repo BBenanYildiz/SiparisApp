@@ -1,4 +1,5 @@
 using Autofac;
+using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using SiparisApp.API.Modules;
@@ -34,6 +35,8 @@ builder.Services.AddLogging(x =>
     x.AddDebug(); //Output penceresinde gösterir.
 
 });
+
+builder.Services.AddHttpClient();
 
 builder.Host.UseServiceProviderFactory
     (new AutofacServiceProviderFactory());
